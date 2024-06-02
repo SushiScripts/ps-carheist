@@ -5,7 +5,7 @@ Config.Difficult = {
      {
         minMoney = 15000,               -- Minimum money you get from the mission
         maxMoney = 30000,           -- Max money you get from the mission
-        amount = 15,                -- Amount the enemy weapon
+        amount = 8,                -- Amount the enemy weapon
         weapon = 'WEAPON_PISTOL',   -- Enemy weapon
         ammoWeapon = 50,            -- Amout to ammo of the enemys
         hasVest = false,            -- has a bulletproof vest
@@ -23,7 +23,7 @@ Config.Difficult = {
     {
         minMoney = 50000,
         maxMoney = 80000,
-        amount = 30,
+        amount = 10,
         weapon = 'WEAPON_MICROSMG',
         ammoWeapon = 100,
         hasVest = true,
@@ -42,7 +42,7 @@ Config.Difficult = {
     {
         minMoney = 100000,
         maxMoney = 150000,
-        amount = 50,
+        amount = 20,
         weapon = 'WEAPON_ASSAULTRIFLE',
         ammoWeapon = 120,
         hasVest = true,
@@ -65,8 +65,9 @@ Config.pedModelPoint = 'CSB_Bogdan' -- Hash ped point.
 Config.pedLocation = vector4(-951.04, -3056.05, 13.95, 59.64)
 Config.vehiclePoint = vector4(-1240.16, -2270.2, 13.39, 108.78)
 
-Config.timeOff = 1800000  -- Time off (In ms)
+Config.timeOff = 1800 -- Seconds // Default: 1800 Seconds = 30 minutes.
 Config.marketMoney = false
+Config.copsRequired = 0    -- Minimum cops required for mision start
 --Config.vehicleModel = 'btype3' --Hash vehicle.
 
 --[[ Config.weaponModelEasy = '' -- Weapon model to ped in diffucult easy
