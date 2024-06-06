@@ -9,11 +9,16 @@ shared_script {
     '@qb-core/shared/locale.lua',
     'locales/en.lua',
     'locales/*.lua',
-    'config.lua',
+    'config.lua'
 }
 
 client_script {
-    'client/client.lua',
+    '@PolyZone/client.lua',
+	'@PolyZone/BoxZone.lua',
+	'@PolyZone/EntityZone.lua',
+	'@PolyZone/CircleZone.lua',
+	'@PolyZone/ComboZone.lua',
+    'client/client.lua'
 }
 
 server_script {

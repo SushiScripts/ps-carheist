@@ -60,19 +60,49 @@ Config.Difficult = {
     }
 }
 
-Config.pedModelPoint = 'CSB_Bogdan' -- Hash ped point.
---Config.pedModelLocation = 'mp_s_m_armoured_01' -- Hash ped point heist car.
-Config.pedLocation = vector4(-951.04, -3056.05, 13.95, 59.64)
+Config.peds = {
+    ['StartMission'] = 
+    {
+        pedModel = 'CSB_Bogdan',
+        pedLocation = vector4(749.67, -1706.84, 29.18, 146.13),
+        zoneOptions = 
+        {
+            Height = 3.0,
+            Width = 3.0,
+            debug = false
+        }
+    }
+}
+
+Config.deliverCar = vector3(761.92, -1866.08, 28.81)
+
+
 Config.vehiclePoint = vector4(-1240.16, -2270.2, 13.39, 108.78)
 
 Config.timeOff = 1800 -- Seconds // Default: 1800 Seconds = 30 minutes.
 Config.marketMoney = false
 Config.copsRequired = 0    -- Minimum cops required for mision start
---Config.vehicleModel = 'btype3' --Hash vehicle.
 
---[[ Config.weaponModelEasy = '' -- Weapon model to ped in diffucult easy
-Config.weaponModelMiddle = '' -- Weapon model to ped in diffucult middle
-Config.weaponModelHard = '' -- Weapon model to ped in diffucult hard ]]
+Config.blips = {
+
+    ['vehiclePoint'] = 
+    {
+        coords = 0,
+        sprite = 0,
+        color = 0,
+        routeColor = 0
+        --shotRange = true
+    },
+    ['sellerPoint'] =
+    {
+        coords = 0,
+        sprite = 0,
+        color = 0,
+        routeColor = 0
+        --shotRange = true
+    }
+
+}
 
 
 

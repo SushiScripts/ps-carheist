@@ -40,18 +40,29 @@ AddEventHandler('ps-carheist:server:policiasActivos', function (data)
                 TriggerClientEvent('ps-carheist:client:startMision', _source, dificultad)
                 OcuppedMission()
             else
-                TriggerClientEvent('QBCore:Notify', _source, "error inesperado", 'error', 5000) -- Debug test
+                TriggerClientEvent('QBCore:Notify', _source, Lang:t('notify.errorNil'), 'error', 5000) -- Debug test
             end
         else
 
-            TriggerClientEvent('QBCore:Notify', _source, "Pasate mas tarde, estoy ocupado ahora mismo", "error", 5000)
+            TriggerClientEvent('QBCore:Notify', _source,  Lang:t('notify.availableMission'), "error", 5000)
 
         end
         
 
     else
-        TriggerClientEvent('QBCore:Notify', _source, "No hay suficientes policias en linea", 'error', 5000)
+        TriggerClientEvent('QBCore:Notify', _source, Lang:t('notify.noCops'), 'error', 5000)
     end
+end)
+
+
+RegisterNetEvent('ps-carheist:server:PayContract')
+AddEventHandler('ps-carheist:server:PayContract', function (data)
+    
+    local xPlayer = QBCore.Functions.GetPlayer(source)
+    local payContract = math.random(Config.Difficult[data].minMoney, Config.Difficult[data].maxMoney)
+    TriggerClientEvent('QBCore:Notify', source, Lang:t('notify.payText1') .. payContract .. Lang:t('notify.payText2'), 'primary', 5000)
+    xPlayer.Functions.AddMoney('cash', payContract, "Mission")
+
 end)
 
 

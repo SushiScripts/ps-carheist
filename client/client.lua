@@ -2,6 +2,7 @@ local QBCore = exports['qb-core']:GetCoreObject() --Qbcore
 local PlayerJob = nil
 local pedPlayer = nil
 local ped = nil
+local controlMenu = false
 local pedChop = nil
 local difficult = nil
 local vehicle = nil
@@ -18,72 +19,6 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     print(PlayerJob.name)
 end)
 
-CreateThread(function ()
-    while true do
-        local player = PlayerPedId()
-        local pos = #(GetEntityCoords(player) - vector3(Config.pedLocation.x, Config.pedLocation.y, Config.pedLocation.z))
-        if pos <= 1  then
-            -- body
-            exports['qb-core']:DrawText("Presiona [E] para hablar", 'left')
-
-            if IsControlJustReleased(0, 38) then
-                if PlayerJob.name == "police" then
-                    TriggerEvent('QBCore:Notify', "Fuera de aqui basura", "error", 5000)
-                    exports['qb-core']:HideText()
-                    Wait(5000)
-                else
-                        exports['qb-menu']:openMenu({
-                            {
-                                header = 'Mision de robar coche',
-                                icon = 'fa-solid fa-gun',
-                                isMenuHeader = true, 
-                            },
-                            {
-                                header = 'Atraco Facil',
-                                txt = 'Un atraco con pocas complicaciones.',
-                                icon = 'fa-solid fa-egg',
-                                params = {
-                                    isServer = true,
-                                    event = 'ps-carheist:server:policiasActivos',
-                                    args = {
-                                        difficult = "easy"
-                                    }
-                                }
-                            },  
-                            {
-                                header = 'Atraco Medio',
-                                txt = '¿Que te pensabas, que iba ser un camino de rosas?',
-                                icon = 'fa-solid fa-hand-middle-finger',
-                                params = {
-                                    isServer = true,
-                                    event = 'ps-carheist:server:policiasActivos',
-                                    args = {
-                                        difficult = "middle"
-                                    }
-                                }
-                            }, 
-                            {
-                                header = 'Atraco Dificil',
-                                txt = 'Demustra de lo que eres capaz, no creo que lo consigas.',
-                                icon = 'fa-solid fa-explosion',
-                                params = {
-                                    isServer = true,
-                                    event = 'ps-carheist:server:policiasActivos',
-                                    args = {
-                                        difficult = "hard"
-                                    }
-                                }
-                            }
-                        })
-                end
-            end
-        else
-            exports['qb-core']:HideText()
-        end
-        Wait(0)
-    end
-end)
-
 RegisterNetEvent('ps-carheist:client:startMision')
 AddEventHandler('ps-carheist:client:startMision', function (difficult)
     spawnEnemys(difficult)
@@ -91,7 +26,7 @@ end)
 
 function crearPed()
     
-    local pedModel = Config.pedModelPoint
+    local pedModel = Config.peds['StartMission'].pedModel
     local pedChopModel = 'A_C_Husky'
     local animDic = 'rcmnigel1a'
     while not HasModelLoaded(pedModel) do
@@ -109,8 +44,8 @@ function crearPed()
     end
 
     -- Ped
-    ped = CreatePed(0, pedModel, Config.pedLocation.x, Config.pedLocation.y, Config.pedLocation.z - 1, Config.pedLocation.w, true, true)
-    pedChop = CreatePed(0, pedChopModel, Config.pedLocation.x, Config.pedLocation.y - 0.5, Config.pedLocation.z - 1, Config.pedLocation.w, true, true)
+    ped = CreatePed(0, pedModel, Config.peds['StartMission'].pedLocation.x, Config.peds['StartMission'].pedLocation.y, Config.peds['StartMission'].pedLocation.z - 1, Config.peds['StartMission'].pedLocation.w, true, true)
+    pedChop = CreatePed(0, pedChopModel, Config.peds['StartMission'].pedLocation.x, Config.peds['StartMission'].pedLocation.y - 0.5, Config.peds['StartMission'].pedLocation.z - 1, Config.peds['StartMission'].pedLocation.w, true, true)
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
@@ -120,10 +55,28 @@ function crearPed()
     FreezeEntityPosition(pedChop, true)
     SetEntityInvincible(pedChop, true)
     SetBlockingOfNonTemporaryEvents(pedChop, true)
+
+    -- Message
+
+    local zone= BoxZone:Create(Config.peds['StartMission'].pedLocation.xyz, Config.peds['StartMission'].zoneOptions.Width, Config.peds['StartMission'].zoneOptions.Height, 
+    {
+        name='zone_startMission',
+        debugPoly= Config.peds['StartMission'].zoneOptions.debug,
+    })
+    zone:onPlayerInOut(function(isPointInside, point)
+        if isPointInside then
+            
+            exports['qb-core']:DrawText(Lang:t('notify.pressButton'), 'left')
+            ListenControl()
+
+        else
+            exports["qb-core"]:HideText() 
+            controlMenu = false
+        end
+    end)
 end
 
 function spawnEnemys(difficult)
-
     local configLocal = Config.Difficult[difficult]
 
     for i, value in ipairs(configLocal.enemysModel) do
@@ -158,8 +111,9 @@ function spawnEnemys(difficult)
     end
     spawnCar(difficult)
     createBlips(Config.vehiclePoint)
-    TriggerEvent('QBCore:Notify', "Te he marcado las coordenadas en el GPS", 'success', 5000)
+    TriggerEvent('QBCore:Notify', Lang:t('notify.gpsCoords'), 'primary', 5000)
 end
+
 
 function spawnCar(difficult)
     
@@ -171,7 +125,126 @@ function spawnCar(difficult)
     end
 
     vehicle = CreateVehicle(configLocal.car, Config.vehiclePoint.x, Config.vehiclePoint.y, Config.vehiclePoint.z, Config.vehiclePoint.w, true, true)
+
+    local zone2 = CircleZone:Create(Config.vehiclePoint.xyz, 2, {
+        name='zone_carHeist',
+        debugPoly=false,
+        useZ = true,
+    })
+    
+    zone2:onPlayerInOut(function(isPointInside, point)
+        
+        if isPointInside then
+
+            TriggerEvent('QBCore:Notify', Lang:t('notify.gpsNewCoords'), 'primary', 5000)
+            TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(vehicle))
+
+            RemoveBlip(blip)
+
+            createBlips(Config.deliverCar.xyz)
+
+            local zoneCar = CircleZone:Create(Config.deliverCar.xyz, 3, {
+                name='zone_deliverCar',
+                debugPoly=false,
+                useZ = true,
+            })
+            zoneCar:onPlayerInOut(function(isPointInside, point)
+                
+                if isPointInside then
+                    controlMenu = true
+                    exports['qb-core']:DrawText(Lang:t('notify.pressButtonDeliver'), 'left')
+
+                    CreateThread(function()
+                        while controlMenu do
+                            if IsControlJustReleased(0, 38) then
+
+                                controlMenu = false
+                                Wait(1000)
+                                TaskLeaveVehicle(pedPlayer, vehicle, 0)
+                                Wait(2000)
+                                SetVehicleDoorsLocked(vehicle, 2)
+                                Wait(5000)
+                                DeleteEntity(vehicle)
+                                RemoveBlip(blip)
+                                TriggerServerEvent('ps-carheist:server:PayContract', difficult)
+                            end
+                            Wait(1)
+                        end
+                    end)
+                else
+                    exports["qb-core"]:HideText() 
+                end
+            end)
+        else
+        end
+    end)
 end
+
+function ListenControl()
+    controlMenu = true
+    CreateThread(function()
+        
+        while controlMenu do
+            
+            if IsControlJustReleased(0, 38) then
+                if PlayerJob.name == "police" then
+                    TriggerEvent('QBCore:Notify', Lang:t('notify.jobPolice'), "error", 5000)
+                    exports['qb-core']:HideText()
+                    Wait(5000)
+                else
+                        TriggerEvent('ps-carheist:client:ShowMenu')
+                end
+            end
+            Wait(1)
+        end
+    end)
+end
+
+RegisterNetEvent('ps-carheist:client:ShowMenu', function(data)
+    exports['qb-menu']:openMenu({
+        {
+            header = Lang:t('menu.headerMenu'),
+            icon = 'fa-solid fa-gun',
+            isMenuHeader = true, 
+        },
+        {
+            header = Lang:t('menu.easyMenu'),
+            txt = Lang:t('menu.easyDescription'),
+            icon = 'fa-solid fa-egg',
+            params = {
+                isServer = true,
+                event = 'ps-carheist:server:policiasActivos',
+                args = {
+                    difficult = "easy"
+                }
+            }
+        },  
+        {
+            header = Lang:t('menu.middleMenu'),
+            txt = Lang:t('menu.middleDescription'),
+            icon = 'fa-solid fa-hand-middle-finger',
+            params = {
+                isServer = true,
+                event = 'ps-carheist:server:policiasActivos',
+                args = {
+                    difficult = "middle"
+                }
+            }
+        }, 
+        {
+            header = Lang:t('menu.hardMenu'),
+            txt = Lang:t('menu.hardDescription'),
+            icon = 'fa-solid fa-explosion',
+            params = {
+                isServer = true,
+                event = 'ps-carheist:server:policiasActivos',
+                args = {
+                    difficult = "hard"
+                }
+            }
+        }
+    })
+end)
 
 function createBlips(coords)
     
@@ -199,12 +272,14 @@ AddEventHandler('onResourceStop', function(resource)
         ped = nil
         pedChop = nil
         difficult = nil
-        blip = nil
+        RemoveBlip(blip)
         DeleteEntity(vehicle)
 
         
    end
 end)
+
+
 
 AddEventHandler('onResourceStart', function(resource)
    if resource == GetCurrentResourceName() then
